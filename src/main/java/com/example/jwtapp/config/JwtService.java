@@ -1,0 +1,67 @@
+package com.example.jwtapp.config;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import java.security.Key;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+@Service
+public class JwtService {
+    @Value("${app.jwt.access.secret}")
+    private String ACCESS_TOKEN_SECRET;
+
+    public String extractUsername(String token) {
+//        return extractAllClaims(token).getSubject();
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    }
+
+    private boolean isTokenExpired(String token) {
+        return extractClaim(token,Claims::getExpiration).before(new Date());
+    }
+
+    public String generateToken(UserDetails userDetails) {
+        return generateToken(new HashMap<>(), userDetails);
+    }
+
+    public String generateToken(Map<String, Object> payload, UserDetails userDetails) {
+        // 1 hour
+        int ACCESS_TOKEN_EXPIRATION_MILLIS = 1000 * 60 * 60;
+        Date expirationDate = new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION_MILLIS);
+        return Jwts
+                .builder()
+                .setSubject(userDetails.getUsername())
+                .setExpiration(expirationDate)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .addClaims(payload)
+                .signWith(Keys.hmacShaKeyFor(ACCESS_TOKEN_SECRET.getBytes()))
+                .compact();
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts
+                .parserBuilder()
+                .setSigningKey(ACCESS_TOKEN_SECRET.getBytes())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+}

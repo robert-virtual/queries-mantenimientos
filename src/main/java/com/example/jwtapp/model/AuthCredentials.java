@@ -1,4 +1,4 @@
-package com.example.jwtapp.config;
+package com.example.jwtapp.model;
 
 import lombok.Data;
 
