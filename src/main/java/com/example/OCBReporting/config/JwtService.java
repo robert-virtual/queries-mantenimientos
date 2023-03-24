@@ -1,7 +1,8 @@
-package com.example.jwtapp.config;
+package com.example.OCBReporting.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -51,17 +52,22 @@ public class JwtService {
                 .setExpiration(expirationDate)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .addClaims(payload)
-                .signWith(Keys.hmacShaKeyFor(ACCESS_TOKEN_SECRET.getBytes()))
+                .signWith(getSigningKey())
                 .compact();
     }
 
     private Claims extractAllClaims(String token) {
         return Jwts
                 .parserBuilder()
-                .setSigningKey(ACCESS_TOKEN_SECRET.getBytes())
+                .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    private Key getSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(ACCESS_TOKEN_SECRET);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
 }

@@ -1,14 +1,14 @@
-package com.example.jwtapp.auth;
+package com.example.OCBReporting.auth;
 
-import com.example.jwtapp.model.AuthCredentials;
-import com.example.jwtapp.model.BasicResponse;
-import com.example.jwtapp.model.User;
+import com.example.OCBReporting.model.AuthCredentials;
+import com.example.OCBReporting.model.BasicResponse;
+import com.example.OCBReporting.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -16,6 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+
+    @GetMapping("/check-token")
+    public ResponseEntity<Boolean> checkToken() {
+        System.out.println("check-token");
+        return ResponseEntity.ok(
+                true
+        );
+    }
 
     @PostMapping("/register")
     public ResponseEntity<BasicResponse<User>> register(@RequestBody User user) {

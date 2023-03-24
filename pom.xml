@@ -9,11 +9,11 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>jwtapp</artifactId>
+    <artifactId>OCBReporting</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
-    <name>jwtapp</name>
-    <description>jwtapp</description>
+    <name>OCBReporting</name>
+    <description>reporting ocb</description>
     <properties>
         <java.version>11</java.version>
     </properties>

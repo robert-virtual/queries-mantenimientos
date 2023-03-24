@@ -1,4 +1,4 @@
-package com.example.jwtapp.config;
+package com.example.OCBReporting.config;
 
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;

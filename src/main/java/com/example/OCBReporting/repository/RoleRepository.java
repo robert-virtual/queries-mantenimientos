@@ -1,7 +1,6 @@
-package com.example.jwtapp.repository;
+package com.example.OCBReporting.repository;
 
-import com.example.jwtapp.model.Role;
-import com.example.jwtapp.model.User;
+import com.example.OCBReporting.model.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

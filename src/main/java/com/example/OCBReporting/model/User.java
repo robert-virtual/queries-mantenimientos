@@ -1,4 +1,4 @@
-package com.example.jwtapp.model;
+package com.example.OCBReporting.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,13 +34,16 @@ public class User implements UserDetails {
     @Column(columnDefinition = "bit default 1")
     private boolean enabled = true;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private List<Role> roles = new ArrayList<>();
+    public void addRole(Role role){
+       this.roles.add(role);
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

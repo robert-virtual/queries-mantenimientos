@@ -1,9 +1,9 @@
-package com.example.jwtapp.config;
+package com.example.OCBReporting.config;
 
-import com.example.jwtapp.repository.RoleRepository;
-import com.example.jwtapp.repository.UserRepository;
-import com.example.jwtapp.model.Role;
-import com.example.jwtapp.model.User;
+import com.example.OCBReporting.repository.RoleRepository;
+import com.example.OCBReporting.repository.UserRepository;
+import com.example.OCBReporting.model.Role;
+import com.example.OCBReporting.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

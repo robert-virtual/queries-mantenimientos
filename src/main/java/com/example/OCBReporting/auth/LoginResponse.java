@@ -1,6 +1,6 @@
-package com.example.jwtapp.auth;
+package com.example.OCBReporting.auth;
 
-import com.example.jwtapp.model.User;
+import com.example.OCBReporting.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

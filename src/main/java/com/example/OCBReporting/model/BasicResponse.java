@@ -1,4 +1,4 @@
-package com.example.jwtapp.model;
+package com.example.OCBReporting.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

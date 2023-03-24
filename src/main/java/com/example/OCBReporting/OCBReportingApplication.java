@@ -1,14 +1,13 @@
-package com.example.jwtapp;
+package com.example.OCBReporting;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @SpringBootApplication
-public class JwtappApplication {
+public class OCBReportingApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(JwtappApplication.class, args);
+        SpringApplication.run(OCBReportingApplication.class, args);
     }
 
 }

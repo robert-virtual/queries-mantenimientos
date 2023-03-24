@@ -1,4 +1,4 @@
-package com.example.jwtapp.config;
+package com.example.OCBReporting.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
