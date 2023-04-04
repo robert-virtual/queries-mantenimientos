@@ -43,6 +43,13 @@ public class User implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private List<Role> roles = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+            name = "t_user_app",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "app_id")
+    )
+    private List<App> apps = new ArrayList<>();
 
     public void addRole(Role role) {
         this.roles.add(role);
