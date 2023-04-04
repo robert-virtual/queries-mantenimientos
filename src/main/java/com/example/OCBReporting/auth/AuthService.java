@@ -1,7 +1,7 @@
 package com.example.OCBReporting.auth;
 
 import com.example.OCBReporting.config.JwtService;
-import com.example.OCBReporting.model.AuthCredentials;
+import com.example.OCBReporting.dto.AuthCredentials;
 import com.example.OCBReporting.model.User;
 import com.example.OCBReporting.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +9,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +28,9 @@ public class AuthService {
                 )
         );
         User user = userRepo.findOneByEmail(authCredentials.getEmail()).orElseThrow();
-        return LoginResponse.builder().token(jwtService.generateToken(user)).build();
+        user.setLastLogin(LocalDateTime.now());
+        userRepo.save(user);
+        return LoginResponse.builder().token(jwtService.generateToken(user)).user(user).build();
     }
 
     public User register(User user) {

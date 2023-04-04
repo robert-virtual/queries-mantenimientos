@@ -11,8 +11,11 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Configuration
 @RequiredArgsConstructor
@@ -23,7 +26,7 @@ public class SeedData {
     private String adminEmail;
     @Value("${app.admin.password}")
     private String adminPassword;
-    private int roleId;
+    private List<Integer> roleId;
 
     @EventListener
     public void seed(ContextRefreshedEvent event) {
@@ -32,12 +35,14 @@ public class SeedData {
     }
 
     public void seedRoles() {
-        Optional<Role> role = roleRepo.findOneByName("admin");
-        if (role.isPresent()) {
-            roleId = role.get().getId();
+        List<String> roles = List.of("query_authorizer", "query_creator", "user_creator");
+        List<Role> role = roleRepo.findByNameIn(roles);
+        if (new HashSet<>(role.stream().map(Role::getName).collect(Collectors.toList())).containsAll(roles)) {
+            roleId = role.stream().map(Role::getId).collect(Collectors.toList());
             return;
         }
-        roleId = roleRepo.save(Role.builder().name("admin").build()).getId();
+        roles = roles.stream().filter(x-> role.stream().noneMatch(y-> Objects.equals(y.getName(), x))).collect(Collectors.toList());
+        roleId = roleRepo.saveAll(roles.stream().map(x -> Role.builder().name(x).build()).collect(Collectors.toList())).stream().map(Role::getId).collect(Collectors.toList());
     }
 
     public void seedUsers() {
@@ -51,7 +56,8 @@ public class SeedData {
                         .email(adminEmail)
                         .password(new BCryptPasswordEncoder()
                                 .encode(adminPassword))
-                        .roles(List.of(Role.builder().id(roleId).build()))
+                        .roles(roleId.stream().map(x -> Role.builder().id(x).build()).collect(Collectors.toList()))
+                        .enabled(true)
                         .build()
         );
     }

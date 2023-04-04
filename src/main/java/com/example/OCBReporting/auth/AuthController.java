@@ -1,14 +1,11 @@
 package com.example.OCBReporting.auth;
 
-import com.example.OCBReporting.model.AuthCredentials;
-import com.example.OCBReporting.model.BasicResponse;
+import com.example.OCBReporting.dto.AuthCredentials;
+import com.example.OCBReporting.dto.BasicResponse;
 import com.example.OCBReporting.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -19,7 +16,6 @@ public class AuthController {
 
     @GetMapping("/check-token")
     public ResponseEntity<Boolean> checkToken() {
-        System.out.println("check-token");
         return ResponseEntity.ok(
                 true
         );

@@ -1,4 +1,4 @@
-package com.example.OCBReporting.model;
+package com.example.OCBReporting.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

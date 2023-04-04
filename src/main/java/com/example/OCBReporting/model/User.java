@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Entity(name = "users")
+@Entity(name = "t_users")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private int id;
     private String name;
     private String lastname;
     @Column(columnDefinition = "nvarchar(320) unique not null")
@@ -31,18 +31,21 @@ public class User implements UserDetails {
     private String password;
     private LocalDateTime lastLogin;
     private int failedLoginAttempts;
+    @Column(columnDefinition = "nvarchar(50) default 'active'")
+    private String status;
     @Column(columnDefinition = "bit default 1")
     private boolean enabled = true;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "user_role",
+            name = "t_user_role",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private List<Role> roles = new ArrayList<>();
-    public void addRole(Role role){
-       this.roles.add(role);
+
+    public void addRole(Role role) {
+        this.roles.add(role);
     }
 
     @Override
