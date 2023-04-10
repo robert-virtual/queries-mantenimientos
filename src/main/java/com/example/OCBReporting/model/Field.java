@@ -18,7 +18,7 @@ import javax.persistence.Id;
 public class Field {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
     private String name;
     private String type;
     private int table_id;

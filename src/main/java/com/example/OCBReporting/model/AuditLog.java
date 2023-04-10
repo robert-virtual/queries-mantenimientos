@@ -6,23 +6,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
 
-@Entity(name = "t_tables")
+@Entity(name = "t_modules")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Table {
+public class AuditLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
-    private String name;
-    private int app_id;
-    @OneToMany
-    @JoinColumn(name = "table_id")
-    List<Field> fields = new ArrayList<>();
+    private String action;
+    private String data_json;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+    private LocalDateTime date;
 
 }
