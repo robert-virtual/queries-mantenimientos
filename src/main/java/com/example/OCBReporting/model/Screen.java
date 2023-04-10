@@ -6,21 +6,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.List;
 
-@Entity(name = "t_apps")
+@Entity(name = "t_screens")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class App {
+public class Screen {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
+    private String link;
     private String status;
-    @OneToMany
-    @JoinColumn(name = "app_id")
-    private List<Table> tables;
 
 }

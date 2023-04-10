@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface QueryRepository extends JpaRepository<Query,Integer> {
+public interface QueryRepository extends JpaRepository<Query,Long> {
 }

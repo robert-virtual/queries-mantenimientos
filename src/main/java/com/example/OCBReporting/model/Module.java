@@ -28,4 +28,7 @@ public class Module {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     List<Role> roles = new ArrayList<>();
+    @OneToMany
+    @JoinColumn(name = "module_id")
+    List<Screen> screens = new ArrayList<>();
 }

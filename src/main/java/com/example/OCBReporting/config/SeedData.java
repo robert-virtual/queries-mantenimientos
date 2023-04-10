@@ -1,5 +1,7 @@
 package com.example.OCBReporting.config;
 
+import com.example.OCBReporting.model.App;
+import com.example.OCBReporting.repository.AppRepository;
 import com.example.OCBReporting.repository.RoleRepository;
 import com.example.OCBReporting.repository.UserRepository;
 import com.example.OCBReporting.model.Role;
@@ -22,18 +24,31 @@ import java.util.stream.Collectors;
 public class SeedData {
     private final UserRepository userRepo;
     private final RoleRepository roleRepo;
+    private final AppRepository appRepo;
     @Value("${app.admin.email}")
     private String adminEmail;
     @Value("${app.admin.password}")
     private String adminPassword;
     private List<Integer> roleId;
+    private List<Integer> apps;
 
     @EventListener
     public void seed(ContextRefreshedEvent event) {
         seedRoles();
+        seedApps();
         seedUsers();
     }
 
+    public void seedApps() {
+        List<String> appsNames = List.of("ocb_example", "vaucher_example");
+        List<App> appsFound  = appRepo.findByNameIn(appsNames);
+        if (new HashSet<>(appsFound.stream().map(App::getName).collect(Collectors.toList())).containsAll(appsNames)) {
+            apps = appsFound.stream().map(App::getId).collect(Collectors.toList());
+            return;
+        }
+        appsNames = appsNames.stream().filter(x-> appsFound.stream().noneMatch(y-> Objects.equals(y.getName(), x))).collect(Collectors.toList());
+        roleId = appRepo.saveAll(appsNames.stream().map(x -> App.builder().name(x).build()).collect(Collectors.toList())).stream().map(App::getId).collect(Collectors.toList());
+    }
     public void seedRoles() {
         List<String> roles = List.of("query_authorizer", "query_creator", "user_creator");
         List<Role> role = roleRepo.findByNameIn(roles);

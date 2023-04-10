@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class Query {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
     @ManyToOne
     @JoinColumn(name = "table_id")
     private Table table;
