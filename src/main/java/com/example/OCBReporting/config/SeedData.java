@@ -41,22 +41,23 @@ public class SeedData {
 
     public void seedApps() {
         List<String> appsNames = List.of("ocb_example", "vaucher_example");
-        List<App> appsFound  = appRepo.findByNameIn(appsNames);
+        List<App> appsFound = appRepo.findByNameIn(appsNames);
         if (new HashSet<>(appsFound.stream().map(App::getName).collect(Collectors.toList())).containsAll(appsNames)) {
             apps = appsFound.stream().map(App::getId).collect(Collectors.toList());
             return;
         }
-        appsNames = appsNames.stream().filter(x-> appsFound.stream().noneMatch(y-> Objects.equals(y.getName(), x))).collect(Collectors.toList());
+        appsNames = appsNames.stream().filter(x -> appsFound.stream().noneMatch(y -> Objects.equals(y.getName(), x))).collect(Collectors.toList());
         roleId = appRepo.saveAll(appsNames.stream().map(x -> App.builder().name(x).build()).collect(Collectors.toList())).stream().map(App::getId).collect(Collectors.toList());
     }
+
     public void seedRoles() {
-        List<String> roles = List.of("query_authorizer", "query_creator", "user_creator");
+        List<String> roles = List.of(Role.QUERY_AUTHORIZER, Role.QUERY_CREATOR, Role.USER_CREATOR);
         List<Role> role = roleRepo.findByNameIn(roles);
         if (new HashSet<>(role.stream().map(Role::getName).collect(Collectors.toList())).containsAll(roles)) {
             roleId = role.stream().map(Role::getId).collect(Collectors.toList());
             return;
         }
-        roles = roles.stream().filter(x-> role.stream().noneMatch(y-> Objects.equals(y.getName(), x))).collect(Collectors.toList());
+        roles = roles.stream().filter(x -> role.stream().noneMatch(y -> Objects.equals(y.getName(), x))).collect(Collectors.toList());
         roleId = roleRepo.saveAll(roles.stream().map(x -> Role.builder().name(x).build()).collect(Collectors.toList())).stream().map(Role::getId).collect(Collectors.toList());
     }
 

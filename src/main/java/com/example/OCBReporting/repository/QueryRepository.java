@@ -1,10 +1,12 @@
 package com.example.OCBReporting.repository;
 
 import com.example.OCBReporting.model.Query;
-import com.example.OCBReporting.model.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import java.util.List;
 
-public interface QueryRepository extends JpaRepository<Query,Long> {
+public interface QueryRepository extends JpaRepository<Query, Long> {
+    List<Query> findAllByStatusOrderByRequestedAt(String status, Pageable pageable);
+
 }

@@ -20,7 +20,8 @@ public class Table {
     private long id;
 
     private String name;
-    private int app_id;
+    @Column(name = "app_id")
+    private int appId;
     @OneToMany
     @JoinColumn(name = "table_id")
     List<Field> fields = new ArrayList<>();

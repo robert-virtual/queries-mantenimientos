@@ -19,9 +19,13 @@ public class Role {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name="t_module_role",
+            name = "t_module_role",
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "module_id")
     )
     List<Module> modules = new ArrayList<>();
+
+    public static String QUERY_AUTHORIZER = "query_authorizer";
+    public static String QUERY_CREATOR = "query_creator";
+    public static String USER_CREATOR = "user_creator";
 }

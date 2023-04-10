@@ -34,4 +34,6 @@ public class Query {
     private User authorizedBy;
     private LocalDateTime requestedAt;
     private LocalDateTime authorizedAt;
+    public static String STATUS_REQUESTED = "requested";
+    public static String STATUS_AUTHORIZED = "authorized";
 }

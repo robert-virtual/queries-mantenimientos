@@ -1,5 +1,6 @@
 package com.example.OCBReporting.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,6 +29,7 @@ public class User implements UserDetails {
     private String lastname;
     @Column(columnDefinition = "nvarchar(320) unique not null")
     private String email;
+    @JsonIgnore
     private String password;
     private LocalDateTime lastLogin;
     private int failedLoginAttempts;
