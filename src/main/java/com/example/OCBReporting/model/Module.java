@@ -21,14 +21,7 @@ public class Module {
 
     private String name;
     private String status;
-    @ManyToMany
-    @JoinTable(
-            name="t_module_role",
-            joinColumns = @JoinColumn(name = "module_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    List<Role> roles = new ArrayList<>();
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "module_id")
     List<Screen> screens = new ArrayList<>();
 }

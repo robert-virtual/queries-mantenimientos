@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity(name = "t_modules")
+@Entity(name = "t_audit_log")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
