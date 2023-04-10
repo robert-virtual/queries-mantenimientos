@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @Builder
 public class User implements UserDetails {
+    public static final String STATUS_ACTIVE = "active";
+    public static final String MISSING_USER_CREATOR_ROLE_ERROR = "You do not have the required role to create users. Contact with the person that created your user to update your roles";
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -31,7 +33,11 @@ public class User implements UserDetails {
     private String email;
     @JsonIgnore
     private String password;
+    @Column(columnDefinition = "datetime default (sysdatetime())")
+    private LocalDateTime passwordUpdatedAt;
     private LocalDateTime lastLogin;
+    @Column(columnDefinition = "datetime default (sysdatetime())")
+    private LocalDateTime createdAt;
     private int failedLoginAttempts;
     @Column(columnDefinition = "nvarchar(50) default 'active'")
     private String status;
@@ -57,6 +63,7 @@ public class User implements UserDetails {
         this.roles.add(role);
     }
 
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.roles.stream().map(x -> new SimpleGrantedAuthority(x.getName())).collect(Collectors.toList());

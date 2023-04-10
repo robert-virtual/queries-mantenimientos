@@ -25,7 +25,7 @@ public class Role {
     )
     List<Module> modules = new ArrayList<>();
 
-    public static String QUERY_AUTHORIZER = "query_authorizer";
-    public static String QUERY_CREATOR = "query_creator";
-    public static String USER_CREATOR = "user_creator";
+    public static final String QUERY_AUTHORIZER = "query_authorizer";
+    public static final String QUERY_CREATOR = "query_creator";
+    public static final String USER_CREATOR = "user_creator";
 }
