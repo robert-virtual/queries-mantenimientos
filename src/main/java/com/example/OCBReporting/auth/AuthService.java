@@ -1,7 +1,8 @@
 package com.example.OCBReporting.auth;
 
+import com.example.OCBReporting.auth.dto.LoginResponse;
 import com.example.OCBReporting.config.JwtService;
-import com.example.OCBReporting.dto.AuthCredentials;
+import com.example.OCBReporting.auth.dto.AuthCredentials;
 import com.example.OCBReporting.model.User;
 import com.example.OCBReporting.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

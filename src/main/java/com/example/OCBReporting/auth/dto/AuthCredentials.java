@@ -1,4 +1,4 @@
-package com.example.OCBReporting.dto;
+package com.example.OCBReporting.auth.dto;
 
 import lombok.Data;
 

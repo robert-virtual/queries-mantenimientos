@@ -1,4 +1,4 @@
-package com.example.OCBReporting.auth;
+package com.example.OCBReporting.auth.dto;
 
 import com.example.OCBReporting.model.User;
 import lombok.AllArgsConstructor;
