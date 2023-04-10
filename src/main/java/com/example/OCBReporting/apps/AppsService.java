@@ -16,7 +16,7 @@ public class AppsService {
     private final AppRepository appRepo;
 
     public App create(AppRequest app) {
-        return appRepo.save(App.builder().name(app.getName()).status("active").build());
+        return appRepo.save(App.builder().name(app.getName()).status(App.STATUS_ACTIVE).build());
     }
 
     public List<App> all() {

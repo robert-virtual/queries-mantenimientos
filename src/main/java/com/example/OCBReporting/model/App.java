@@ -22,5 +22,5 @@ public class App {
     @OneToMany
     @JoinColumn(name = "app_id")
     private List<Table> tables;
-
+    public static final String STATUS_ACTIVE = "active";
 }
