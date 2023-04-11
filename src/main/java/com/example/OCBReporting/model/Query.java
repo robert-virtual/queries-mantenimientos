@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class Query {
+    public static final int ACTION_INSERT = 1;
+    public static final int ACTION_UPDATE = 2;
+    public static final int ACTION_DELETE = 3;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

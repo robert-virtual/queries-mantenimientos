@@ -26,7 +26,13 @@ public class QueriesService {
     private final QueryRepository queryRepo;
     private final UserRepository userRepo;
 
-    public Query create(QueryRequest query) {
+    public Query create(QueryRequest query) throws Exception {
+        if (
+                (query.getAction_id() == Query.ACTION_UPDATE || query.getAction_id() == Query.ACTION_DELETE)
+                        && query.getParameters().get("id") == null
+        ) {
+            throw new Exception("You must provide a id to be updated or deleted");
+        }
         ObjectMapper objectMapper = new ObjectMapper();
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepo.findOneByEmail(userEmail).orElseThrow();

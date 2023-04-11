@@ -13,6 +13,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -25,6 +26,10 @@ public class SeedData {
     private final UserRepository userRepo;
     private final RoleRepository roleRepo;
     private final AppRepository appRepo;
+    @Value("${app.admin.lastname}")
+    private String adminLastname;
+    @Value("${app.admin.name}")
+    private String adminName;
     @Value("${app.admin.email}")
     private String adminEmail;
     @Value("${app.admin.password}")
@@ -69,10 +74,14 @@ public class SeedData {
         userRepo.save(
                 User
                         .builder()
+                        .name(adminName)
+                        .lastname(adminLastname)
                         .email(adminEmail)
                         .password(new BCryptPasswordEncoder()
                                 .encode(adminPassword))
                         .roles(roleId.stream().map(x -> Role.builder().id(x).build()).collect(Collectors.toList()))
+                        .status(User.STATUS_ACTIVE)
+                        .createdAt(LocalDateTime.now())
                         .enabled(true)
                         .build()
         );
