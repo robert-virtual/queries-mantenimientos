@@ -9,17 +9,30 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class FieldsService {
     private final FieldRepository fieldRepo;
 
-    public Field create(FieldRequest table) {
+    public Optional<Field> update(long id, FieldRequest field) {
+        return fieldRepo.findById(
+                id
+        ).map(x -> {
+            if (field.getName() != null) x.setName(field.getName());
+            if (field.getType() != null) x.setType(field.getType());
+            return fieldRepo.save(x);
+        });
+
+    }
+
+    public Field create(FieldRequest field) {
         return fieldRepo.save(
                 Field.builder()
-                        .name(table.getName())
-                        .tableId(table.getTable_id())
+                        .name(field.getName())
+                        .type(field.getType())
+                        .tableId(field.getTable_id())
                         .build()
         );
     }
