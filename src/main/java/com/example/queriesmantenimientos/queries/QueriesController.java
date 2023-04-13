@@ -17,7 +17,7 @@ public class QueriesController {
 
     @GetMapping("/all")
     public ResponseEntity<BasicResponse<List<Query>>> all(
-            @RequestParam(name = "status") String status,
+            @RequestParam(name = "status",required = false) String status,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
@@ -30,19 +30,23 @@ public class QueriesController {
                                         ? queriesService.byStatus(status, page, size)
                                         : queriesService.paged(page, size)
                         )
+                        .data_count(size)
+                        .page(page)
+                        .data_type("Query[]")
                         .build()
         );
     }
 
     @PostMapping("/create")
     public ResponseEntity<BasicResponse<Query>> createQuery(
+            @RequestHeader("Authorization") String authorization,
             @RequestBody QueryRequest query
     ) {
         try {
             return ResponseEntity.ok(
                     BasicResponse
                             .<Query>builder()
-                            .data(queriesService.create(query))
+                            .data(queriesService.create(query,authorization))
                             .build()
             );
         } catch (Exception e) {

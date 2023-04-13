@@ -13,5 +13,6 @@ public class BasicResponse<T> {
     private T data;
     private String error;
     private int data_count;
+    private int page;
     private String data_type;
 }

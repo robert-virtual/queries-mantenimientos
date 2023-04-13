@@ -1,29 +1,40 @@
 package com.example.queriesmantenimientos.config;
 
+import com.example.queriesmantenimientos.model.User;
+import com.example.queriesmantenimientos.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
     @Value("${app.jwt.access.secret}")
     private String ACCESS_TOKEN_SECRET;
+    private final UserRepository userRepo;
+
+    public User getUser(String authorization) throws Exception {
+
+        String userEmail = getEmailFromAuth(authorization);
+        if (userEmail == null) throw new Exception("invalid token");
+        return userRepo.findOneByEmail(userEmail).orElseThrow();
+    }
+
 
     public String extractUsername(String token) {
-//        return extractAllClaims(token).getSubject();
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -34,9 +45,9 @@ public class JwtService {
                 : null;
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(String token) {
         final String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        return username != null && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
@@ -44,23 +55,6 @@ public class JwtService {
         return date == null || date.before(new Date());
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
-    }
-
-    public String generateToken(Map<String, Object> payload, UserDetails userDetails) {
-        // 1 hour
-        int ACCESS_TOKEN_EXPIRATION_MILLIS = 1000 * 60 * 60;
-        Date expirationDate = new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION_MILLIS);
-        return Jwts
-                .builder()
-                .setSubject(userDetails.getUsername())
-                .setExpiration(expirationDate)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .addClaims(payload)
-                .signWith(getSigningKey())
-                .compact();
-    }
 
     private Claims extractAllClaims(String token) {
         try {
@@ -79,6 +73,16 @@ public class JwtService {
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(ACCESS_TOKEN_SECRET);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String getEmailFromAuth(String authorization) throws Exception {
+        if (authorization == null || !authorization.startsWith("Bearer "))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        String token = authorization.substring("Bearer ".length());
+        if (!isTokenValid(token)) {
+            throw new Exception("Invalid token");
+        }
+        return extractUsername(token);
     }
 
 }

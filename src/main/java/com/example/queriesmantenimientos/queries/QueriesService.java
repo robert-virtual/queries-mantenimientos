@@ -1,32 +1,34 @@
 package com.example.queriesmantenimientos.queries;
 
+import com.example.queriesmantenimientos.config.JwtService;
 import com.example.queriesmantenimientos.model.Action;
 import com.example.queriesmantenimientos.model.Query;
 import com.example.queriesmantenimientos.model.Table;
 import com.example.queriesmantenimientos.model.User;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
 import com.example.queriesmantenimientos.repository.QueryRepository;
-import com.example.queriesmantenimientos.repository.UserRepository;
+import com.example.queriesmantenimientos.repository.TableRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class QueriesService {
     private final QueryRepository queryRepo;
-    private final UserRepository userRepo;
+    private final TableRepository tableRepo;
+    private final JwtService jwtService;
 
-    public Query create(QueryRequest query) throws Exception {
+    public Query create(QueryRequest query, String authorization) throws Exception {
         if (
                 (query.getAction_id() == Query.ACTION_UPDATE || query.getAction_id() == Query.ACTION_DELETE)
                         && query.getParameters().get("id") == null
@@ -34,8 +36,32 @@ public class QueriesService {
             throw new Exception("You must provide a id to be updated or deleted");
         }
         ObjectMapper objectMapper = new ObjectMapper();
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepo.findOneByEmail(userEmail).orElseThrow();
+        User user = jwtService.getUser(authorization);
+// my code
+//        List<Long> tablesIds = new ArrayList<>();
+//        user.getApps().forEach(a ->
+//                a.getTables().forEach(t -> tablesIds.add(t.getId()))
+//        );
+//        if (tablesIds.stream().noneMatch(id -> id == query.getTable_id())) {
+//            throw new Exception("you do not have permission to create queries for this table");
+//        }
+        System.out.println("tables ids for this user");
+        user.getApps().forEach(a -> {
+            a.getTables().forEach(t -> System.out.print(t.getId()));
+        });
+        Optional<Table> table = tableRepo.findById(query.getTable_id());
+        if (table.isEmpty()) {
+            throw new Exception("Table not found");
+        }
+        // chat-gpt code
+        boolean hasPermission = user.getApps().stream()
+                .flatMap(a -> a.getTables().stream())
+                .anyMatch(t -> t.getId() == query.getTable_id());
+        if (!hasPermission) {
+            throw new Exception("You do not have permission to create queries for this table");
+        }
+
+
         try {
             return queryRepo.save(
                     Query.builder()
