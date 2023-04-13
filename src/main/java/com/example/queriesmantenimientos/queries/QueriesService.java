@@ -37,23 +37,6 @@ public class QueriesService {
         }
         ObjectMapper objectMapper = new ObjectMapper();
         User user = jwtService.getUser(authorization);
-// my code
-//        List<Long> tablesIds = new ArrayList<>();
-//        user.getApps().forEach(a ->
-//                a.getTables().forEach(t -> tablesIds.add(t.getId()))
-//        );
-//        if (tablesIds.stream().noneMatch(id -> id == query.getTable_id())) {
-//            throw new Exception("you do not have permission to create queries for this table");
-//        }
-        System.out.println("tables ids for this user");
-        user.getApps().forEach(a -> {
-            a.getTables().forEach(t -> System.out.print(t.getId()));
-        });
-        Optional<Table> table = tableRepo.findById(query.getTable_id());
-        if (table.isEmpty()) {
-            throw new Exception("Table not found");
-        }
-        // chat-gpt code
         boolean hasPermission = user.getApps().stream()
                 .flatMap(a -> a.getTables().stream())
                 .anyMatch(t -> t.getId() == query.getTable_id());
