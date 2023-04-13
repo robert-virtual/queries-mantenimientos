@@ -7,7 +7,6 @@ import com.example.queriesmantenimientos.model.Table;
 import com.example.queriesmantenimientos.model.User;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
 import com.example.queriesmantenimientos.repository.QueryRepository;
-import com.example.queriesmantenimientos.repository.TableRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +18,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class QueriesService {
     private final QueryRepository queryRepo;
-    private final TableRepository tableRepo;
     private final JwtService jwtService;
 
     public Query create(QueryRequest query, String authorization) throws Exception {
