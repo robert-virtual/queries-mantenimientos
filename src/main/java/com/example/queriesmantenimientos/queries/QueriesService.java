@@ -4,7 +4,7 @@ import com.example.queriesmantenimientos.config.JwtService;
 import com.example.queriesmantenimientos.model.Action;
 import com.example.queriesmantenimientos.model.Query;
 import com.example.queriesmantenimientos.model.Table;
-import com.example.queriesmantenimientos.model.User;
+import com.example.queriesmantenimientos.dto.User;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
 import com.example.queriesmantenimientos.repository.QueryRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,12 +28,14 @@ public class QueriesService {
     public Query create(QueryRequest query, String authorization) throws Exception {
         if (
                 (query.getAction_id() == Query.ACTION_UPDATE || query.getAction_id() == Query.ACTION_DELETE)
-                        && query.getParameters().get("id") == null
+                        && query.getWhere().isEmpty()
         ) {
-            throw new Exception("You must provide a id to be updated or deleted");
+            throw new Exception("You have to provide a where condition to be updated or deleted");
         }
         ObjectMapper objectMapper = new ObjectMapper();
         User user = jwtService.getUser(authorization);
+        System.out.printf("user found: %d", user.getId());
+        System.out.println(user);
         boolean hasPermission = user.getApps().stream()
                 .flatMap(a -> a.getTables().stream())
                 .anyMatch(t -> t.getId() == query.getTable_id());
@@ -43,17 +45,20 @@ public class QueriesService {
 
 
         try {
+            System.out.println("query saved");
             return queryRepo.save(
                     Query.builder()
                             .table(Table.builder().id(query.getTable_id()).build())
                             .action(Action.builder().id(query.getAction_id()).build())
                             .parameters(objectMapper.writeValueAsString(query.getParameters()))
+                            .whereCondition(objectMapper.writeValueAsString(query.getWhere()))
                             .status(Query.STATUS_REQUESTED)
-                            .requestedBy(user)
+                            .requestedBy(user.getId())
                             .requestedAt(LocalDateTime.now())
                             .build()
             );
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
+            System.out.printf("query not saved: %s", e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

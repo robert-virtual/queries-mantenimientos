@@ -12,4 +12,5 @@ public class QueryRequest {
     private long table_id;
     private int action_id;
     private Map<String,Object> parameters;
+    private Map<String,Object> where;
 }

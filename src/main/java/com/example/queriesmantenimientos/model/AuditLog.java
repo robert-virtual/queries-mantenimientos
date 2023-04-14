@@ -1,5 +1,6 @@
 package com.example.queriesmantenimientos.model;
 
+import com.example.queriesmantenimientos.dto.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,9 +20,7 @@ public class AuditLog {
     private long id;
     private String action;
     private String data_json;
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    private int userId;
     private LocalDateTime date;
 
 }

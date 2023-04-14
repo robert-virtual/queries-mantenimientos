@@ -1,5 +1,6 @@
 package com.example.queriesmantenimientos.model;
 
+import com.example.queriesmantenimientos.dto.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,14 +28,11 @@ public class Query {
     @JoinColumn(name = "action_id")
     private Action action;
     private String parameters;
+    private String whereCondition;
     private String response;
     private String status;
-    @ManyToOne
-    @JoinColumn(name = "requested_by")
-    private User requestedBy;
-    @ManyToOne
-    @JoinColumn(name = "authorized_by")
-    private User authorizedBy;
+    private int requestedBy;
+    private int authorizedBy;
     private LocalDateTime requestedAt;
     private LocalDateTime authorizedAt;
     public static final String STATUS_REQUESTED = "requested";
