@@ -10,10 +10,7 @@ import com.example.queriesmantenimientos.dto.User;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
 import com.example.queriesmantenimientos.repository.QueryRepository;
 import com.example.queriesmantenimientos.repository.TableRepository;
-import com.example.queriesmantenimientos.utils.QueryStatus;
-import com.example.queriesmantenimientos.utils.QueryUtils;
-import com.example.queriesmantenimientos.utils.RoleValues;
-import com.example.queriesmantenimientos.utils.UserUtils;
+import com.example.queriesmantenimientos.utils.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +41,8 @@ public class QueriesService {
 
     public Query create(QueryRequest query, String authorization) throws Exception {
         QueryUtils.hasWhere(query);
-        tableRepo.findById(query.getTable_id()).orElseThrow(() -> new Exception("Invalid query"));
+        Table table = tableRepo.findById(query.getTable_id()).orElseThrow(() -> new Exception("Invalid query"));
+        TableUtils.isActionAllowed(table,query.getAction_id());
         ObjectMapper objectMapper = new ObjectMapper();
         User user = jwtService.getUser(authorization);
         System.out.printf("user found: %d", user.getId());

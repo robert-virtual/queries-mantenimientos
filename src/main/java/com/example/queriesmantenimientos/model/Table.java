@@ -25,5 +25,11 @@ public class Table {
     @OneToMany
     @JoinColumn(name = "table_id")
     List<Field> fields = new ArrayList<>();
-
+    @ManyToMany
+    @JoinTable(
+            name = "t_table_actions",
+            joinColumns = @JoinColumn(name = "table_id"),
+            inverseJoinColumns = @JoinColumn(name = "action_id")
+    )
+    List<Action> actions = new ArrayList<>();
 }
