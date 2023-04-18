@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/queries")
@@ -15,9 +16,14 @@ import java.util.List;
 public class QueriesController {
     private final QueriesService queriesService;
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Optional<Query>> getById(@PathVariable long id) {
+        return ResponseEntity.ok(queriesService.byId(id));
+    }
+
     @GetMapping("/all")
     public ResponseEntity<BasicResponse<List<Query>>> all(
-            @RequestParam(name = "status",required = false) String status,
+            @RequestParam(name = "status", required = false) String status,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
@@ -46,7 +52,7 @@ public class QueriesController {
             return ResponseEntity.ok(
                     BasicResponse
                             .<Query>builder()
-                            .data(queriesService.create(query,authorization))
+                            .data(queriesService.create(query, authorization))
                             .build()
             );
         } catch (Exception e) {

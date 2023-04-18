@@ -11,6 +11,7 @@ import com.example.queriesmantenimientos.repository.TableRepository;
 import com.example.queriesmantenimientos.utils.QueryUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +37,7 @@ public class QueriesService {
         System.out.printf("user found: %d", user.getId());
         System.out.println(user);
         boolean hasPermission = user.getApps().stream()
-                .flatMap(a -> a.getTables().stream())
+                .flatMap(a -> tableRepo.findByAppId(a.getId()).stream())
                 .anyMatch(t -> t.getId() == query.getTable_id());
         if (!hasPermission) {
             throw new Exception("You do not have permission to create queries for this table");
@@ -74,4 +76,8 @@ public class QueriesService {
         Pageable pageable = PageRequest.of(page, size);
         return queryRepo.findAll(pageable).getContent();
     }
+    public Optional<Query> byId(long id) {
+        return queryRepo.findById(id);
+    }
+
 }
