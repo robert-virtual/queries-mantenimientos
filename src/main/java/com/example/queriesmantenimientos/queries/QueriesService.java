@@ -7,7 +7,8 @@ import com.example.queriesmantenimientos.model.Table;
 import com.example.queriesmantenimientos.dto.User;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
 import com.example.queriesmantenimientos.repository.QueryRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.example.queriesmantenimientos.repository.TableRepository;
+import com.example.queriesmantenimientos.utils.QueryUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -24,14 +25,11 @@ import java.util.List;
 public class QueriesService {
     private final QueryRepository queryRepo;
     private final JwtService jwtService;
+    private final TableRepository tableRepo;
 
     public Query create(QueryRequest query, String authorization) throws Exception {
-        if (
-                (query.getAction_id() == Query.ACTION_UPDATE || query.getAction_id() == Query.ACTION_DELETE)
-                        && query.getWhere().isEmpty()
-        ) {
-            throw new Exception("You have to provide a where condition to be updated or deleted");
-        }
+        QueryUtils.hasWhere(query);
+        tableRepo.findById(query.getTable_id()).orElseThrow(() -> new Exception("Invalid query"));
         ObjectMapper objectMapper = new ObjectMapper();
         User user = jwtService.getUser(authorization);
         System.out.printf("user found: %d", user.getId());
@@ -62,6 +60,7 @@ public class QueriesService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     public List<Query> byStatus(
             String status,
