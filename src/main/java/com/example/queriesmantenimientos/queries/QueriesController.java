@@ -4,6 +4,8 @@ import com.example.queriesmantenimientos.dto.BasicResponse;
 import com.example.queriesmantenimientos.model.Query;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.http.Header;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,18 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class QueriesController {
     private final QueriesService queriesService;
+
+    @PutMapping("authorize/{query_id}")
+    public ResponseEntity<Query> authorize(
+            @PathVariable long query_id,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        try {
+            return ResponseEntity.ok(queriesService.authorize(authorization, query_id));
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Optional<Query>> getById(@PathVariable long id) {
