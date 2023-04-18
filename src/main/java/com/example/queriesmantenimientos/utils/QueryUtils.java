@@ -9,7 +9,7 @@ import java.util.Optional;
 public class QueryUtils {
     public static Query isQueryAuthorized(Optional<Query> query) throws Exception {
         if (query.isEmpty()) throw new Exception("Invalid Query");
-        if (Objects.equals(query.get().getStatus(), QueryStatus.STATUS_AUTHORIZED.toString()))
+        if (Objects.equals(query.get().getStatus(), QueryStatus.AUTHORIZED.toString()))
             throw new Exception("Invalid Query");
         return query.get();
     }

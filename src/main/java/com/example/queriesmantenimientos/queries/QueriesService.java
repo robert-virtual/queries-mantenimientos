@@ -19,10 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -147,21 +148,36 @@ public class QueriesService {
                 );
                 break;
         }
-        queryResponse = webClientBuilder.build()
-                .post()
-                .uri(app.getExecuteQueryEndpoint())
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(
-                        QueryWithParameters.builder()
-                                .query(queryString)
-                                .values(parameters.values().toArray())
-                                .build()
-                ))
-                .header("Authorization", authorization)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-        query.setStatus(QueryStatus.STATUS_AUTHORIZED.toString());
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", authorization);
+        HttpEntity<QueryWithParameters> request = new HttpEntity<>(
+                QueryWithParameters.builder()
+                        .query(queryString)
+                        .values(parameters.values().toArray())
+                        .build(),
+                headers
+        );
+        queryResponse = restTemplate.postForObject(
+                app.getExecuteQueryEndpoint(),
+                request,
+                String.class
+        );
+//        queryResponse = webClientBuilder.build()
+//                .post()
+//                .uri(app.getExecuteQueryEndpoint())
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .body(BodyInserters.fromValue(
+//                        QueryWithParameters.builder()
+//                                .query(queryString)
+//                                .values(parameters.values().toArray())
+//                                .build()
+//                ))
+//                .header("Authorization", authorization)
+//                .retrieve()
+//                .bodyToMono(String.class)
+//                .block();
+        query.setStatus(QueryStatus.AUTHORIZED.toString());
         query.setAuthorizedAt(LocalDateTime.now());
         query.setResponse(queryResponse);
         query.setAuthorizedBy(user.getId());

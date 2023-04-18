@@ -1,8 +1,8 @@
 package com.example.queriesmantenimientos.utils;
 
 public enum QueryStatus {
-    STATUS_REQUESTED,
-    STATUS_AUTHORIZED;
+    REQUESTED,
+    AUTHORIZED;
 
     @Override
     public String toString() {

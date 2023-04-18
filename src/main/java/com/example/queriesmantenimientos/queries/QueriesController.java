@@ -19,14 +19,17 @@ public class QueriesController {
     private final QueriesService queriesService;
 
     @PutMapping("authorize/{query_id}")
-    public ResponseEntity<Query> authorize(
+    public ResponseEntity<BasicResponse<Query>> authorize(
             @PathVariable long query_id,
             @RequestHeader("Authorization") String authorization
     ) {
         try {
-            return ResponseEntity.ok(queriesService.authorize(authorization, query_id));
+            return ResponseEntity.ok(BasicResponse.<Query>builder().data(queriesService.authorize(authorization, query_id)).build());
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(
+                    BasicResponse.<Query>builder().error(e.getMessage()).build(),
+                    HttpStatus.BAD_REQUEST
+            );
         }
     }
 
