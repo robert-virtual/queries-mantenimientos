@@ -29,13 +29,11 @@ public class TablesController {
 
     @PostMapping("create")
     public ResponseEntity<BasicResponse<Table>> create(
-            @RequestBody TableRequest table
+            @RequestBody TableRequest table,
+            @RequestHeader("Authorization") String authorization
     ) {
         return ResponseEntity.ok(
-                BasicResponse
-                        .<Table>builder()
-                        .data(tablesService.create(table))
-                        .build()
+                tablesService.create(authorization,table)
         );
     }
 }
