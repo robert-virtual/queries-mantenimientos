@@ -8,6 +8,7 @@ import com.example.queriesmantenimientos.model.Query;
 import com.example.queriesmantenimientos.model.Table;
 import com.example.queriesmantenimientos.dto.User;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
+import com.example.queriesmantenimientos.repository.ActionRepository;
 import com.example.queriesmantenimientos.repository.QueryRepository;
 import com.example.queriesmantenimientos.repository.TableRepository;
 import com.example.queriesmantenimientos.utils.*;
@@ -39,15 +40,13 @@ public class QueriesService {
     public Query create(QueryRequest query, String authorization) throws Exception {
         QueryUtils.hasWhere(query);
         Table table = tableRepo.findById(query.getTable_id()).orElseThrow(() -> new Exception("Invalid query"));
+        QueryUtils.validateFields(query,table);
         TableUtils.isActionAllowed(table, query.getAction_id());
         ObjectMapper objectMapper = new ObjectMapper();
         User user = jwtService.getUser(authorization);
-        System.out.printf("user found: %d", user.getId());
-        System.out.println(user);
         UserUtils.hasRolePermission(user, Set.of(RoleValues.QUERY_CREATOR.toString(), RoleValues.QUERY_AUTHORIZER.toString()));
         hasTablePermissions(query, user);
         try {
-            System.out.println("query saved");
             return queryRepo.save(
                     Query.builder()
                             .table(Table.builder().id(query.getTable_id()).build())
@@ -60,7 +59,6 @@ public class QueriesService {
                             .build()
             );
         } catch (Exception e) {
-            System.out.printf("query not saved: %s", e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
