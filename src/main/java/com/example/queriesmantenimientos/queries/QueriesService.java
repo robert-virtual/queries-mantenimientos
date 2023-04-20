@@ -25,10 +25,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,17 +39,13 @@ public class QueriesService {
     public Query create(QueryRequest query, String authorization) throws Exception {
         QueryUtils.hasWhere(query);
         Table table = tableRepo.findById(query.getTable_id()).orElseThrow(() -> new Exception("Invalid query"));
-        TableUtils.isActionAllowed(table,query.getAction_id());
+        TableUtils.isActionAllowed(table, query.getAction_id());
         ObjectMapper objectMapper = new ObjectMapper();
         User user = jwtService.getUser(authorization);
         System.out.printf("user found: %d", user.getId());
         System.out.println(user);
-        boolean hasPermission = user.getApps().stream()
-                .flatMap(a -> tableRepo.findByAppId(a.getId()).stream())
-                .anyMatch(t -> t.getId() == query.getTable_id());
-        if (!hasPermission) {
-            throw new Exception("You do not have permission to create queries for this table");
-        }
+        UserUtils.hasRolePermission(user, Set.of(RoleValues.QUERY_CREATOR.toString(), RoleValues.QUERY_AUTHORIZER.toString()));
+        hasTablePermissions(query, user);
         try {
             System.out.println("query saved");
             return queryRepo.save(
@@ -69,6 +62,15 @@ public class QueriesService {
         } catch (Exception e) {
             System.out.printf("query not saved: %s", e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void hasTablePermissions(QueryRequest query, User user) throws Exception {
+        boolean hasTablePermission = user.getApps().stream()
+                .flatMap(a -> tableRepo.findByAppId(a.getId()).stream())
+                .anyMatch(t -> t.getId() == query.getTable_id());
+        if (!hasTablePermission) {
+            throw new Exception("You do not have enough permissions");
         }
     }
 
@@ -161,20 +163,6 @@ public class QueriesService {
                 request,
                 String.class
         );
-//        queryResponse = webClientBuilder.build()
-//                .post()
-//                .uri(app.getExecuteQueryEndpoint())
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(BodyInserters.fromValue(
-//                        QueryWithParameters.builder()
-//                                .query(queryString)
-//                                .values(parameters.values().toArray())
-//                                .build()
-//                ))
-//                .header("Authorization", authorization)
-//                .retrieve()
-//                .bodyToMono(String.class)
-//                .block();
         query.setStatus(QueryStatus.AUTHORIZED.toString());
         query.setAuthorizedAt(LocalDateTime.now());
         query.setResponse(queryResponse);
