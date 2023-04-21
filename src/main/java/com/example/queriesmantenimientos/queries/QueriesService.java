@@ -8,13 +8,13 @@ import com.example.queriesmantenimientos.model.Query;
 import com.example.queriesmantenimientos.model.Table;
 import com.example.queriesmantenimientos.dto.User;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
-import com.example.queriesmantenimientos.repository.ActionRepository;
 import com.example.queriesmantenimientos.repository.QueryRepository;
 import com.example.queriesmantenimientos.repository.TableRepository;
 import com.example.queriesmantenimientos.utils.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class QueriesService {
     private final QueryRepository queryRepo;
     private final JwtService jwtService;
@@ -40,7 +41,7 @@ public class QueriesService {
     public Query create(QueryRequest query, String authorization) throws Exception {
         QueryUtils.hasWhere(query);
         Table table = tableRepo.findById(query.getTable_id()).orElseThrow(() -> new Exception("Invalid query"));
-        QueryUtils.validateFields(query,table);
+        QueryUtils.validateFields(query, table);
         TableUtils.isActionAllowed(table, query.getAction_id());
         ObjectMapper objectMapper = new ObjectMapper();
         User user = jwtService.getUser(authorization);
@@ -59,6 +60,7 @@ public class QueriesService {
                             .build()
             );
         } catch (Exception e) {
+            log.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
