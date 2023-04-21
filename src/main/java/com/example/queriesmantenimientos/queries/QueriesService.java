@@ -1,12 +1,12 @@
 package com.example.queriesmantenimientos.queries;
 
 import com.example.queriesmantenimientos.config.JwtService;
-import com.example.queriesmantenimientos.dto.App;
+import com.example.queriesmantenimientos.model.App;
 import com.example.queriesmantenimientos.dto.QueryWithParameters;
 import com.example.queriesmantenimientos.model.Action;
 import com.example.queriesmantenimientos.model.Query;
 import com.example.queriesmantenimientos.model.Table;
-import com.example.queriesmantenimientos.dto.User;
+import com.example.queriesmantenimientos.model.User;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
 import com.example.queriesmantenimientos.repository.QueryRepository;
 import com.example.queriesmantenimientos.repository.TableRepository;
@@ -55,7 +55,7 @@ public class QueriesService {
                             .parameters(objectMapper.writeValueAsString(query.getParameters()))
                             .whereCondition(objectMapper.writeValueAsString(query.getWhere()))
                             .status(Query.STATUS_REQUESTED)
-                            .requestedBy(user.getId())
+                            .requestedBy(user)
                             .requestedAt(LocalDateTime.now())
                             .build()
             );
@@ -166,7 +166,7 @@ public class QueriesService {
         query.setStatus(QueryStatus.AUTHORIZED.toString());
         query.setAuthorizedAt(LocalDateTime.now());
         query.setResponse(queryResponse);
-        query.setAuthorizedBy(user.getId());
+        query.setAuthorizedBy(user);
         return queryRepo.save(query);
     }
 }

@@ -1,7 +1,7 @@
 package com.example.queriesmantenimientos.utils;
 
-import com.example.queriesmantenimientos.dto.Role;
-import com.example.queriesmantenimientos.dto.User;
+import com.example.queriesmantenimientos.model.Role;
+import com.example.queriesmantenimientos.model.User;
 
 import java.util.Objects;
 import java.util.Set;

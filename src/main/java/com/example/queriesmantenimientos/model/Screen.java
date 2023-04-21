@@ -1,4 +1,4 @@
-package com.example.queriesmantenimientos.dto;
+package com.example.queriesmantenimientos.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,11 +7,14 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
+@Entity(name = "t_screens")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class Screen {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
     private String link;

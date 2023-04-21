@@ -1,6 +1,7 @@
 package com.example.queriesmantenimientos.config;
 
-import com.example.queriesmantenimientos.dto.User;
+import com.example.queriesmantenimientos.model.User;
+import com.example.queriesmantenimientos.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -23,8 +24,16 @@ public class JwtService {
     @Value("${app.jwt.access.secret}")
     private String ACCESS_TOKEN_SECRET;
     private final WebClient.Builder webClientBuilder;
+    private final UserRepository userRepo;
 
     public User getUser(String authorization) throws Exception {
+
+        String userEmail = getEmailFromAuth(authorization);
+        if (userEmail == null) throw new Exception("Invalid token");
+        return userRepo.findOneByEmail(userEmail).orElseThrow();
+    }
+
+    public User getUserWeb(String authorization) throws Exception {
 
         String userEmail = getEmailFromAuth(authorization);
         if (userEmail == null) throw new Exception("Invalid token");

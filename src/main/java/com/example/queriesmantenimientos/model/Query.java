@@ -30,9 +30,15 @@ public class Query {
     private String whereCondition;
     private String response;
     private String status;
-    private int requestedBy;
-    @Column(columnDefinition = "int null")
-    private int authorizedBy;
+
+    @ManyToOne
+    @JoinColumn(name = "requested_by")
+    private User requestedBy;
+
+    @ManyToOne
+    @JoinColumn(name = "authorized_by")
+    private User authorizedBy;
+
     private LocalDateTime requestedAt;
     private LocalDateTime authorizedAt;
     public static final String STATUS_REQUESTED = "requested";

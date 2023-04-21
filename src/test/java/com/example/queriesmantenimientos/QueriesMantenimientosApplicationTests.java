@@ -1,10 +1,10 @@
-package com.example.OCBReporting;
+package com.example.queriesmantenimientos;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class OCBReportingApplicationTests {
+class QueriesMantenimientosApplicationTests {
 
     @Test
     void contextLoads() {

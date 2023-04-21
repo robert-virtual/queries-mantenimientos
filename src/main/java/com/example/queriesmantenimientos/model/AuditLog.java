@@ -1,6 +1,5 @@
 package com.example.queriesmantenimientos.model;
 
-import com.example.queriesmantenimientos.dto.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

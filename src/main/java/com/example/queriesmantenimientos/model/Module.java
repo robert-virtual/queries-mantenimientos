@@ -1,6 +1,5 @@
-package com.example.queriesmantenimientos.dto;
+package com.example.queriesmantenimientos.model;
 
-import com.example.queriesmantenimientos.dto.Screen;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,14 +9,19 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity(name = "t_modules")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class Module {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private String name;
     private String status;
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "module_id")
     List<Screen> screens = new ArrayList<>();
 }

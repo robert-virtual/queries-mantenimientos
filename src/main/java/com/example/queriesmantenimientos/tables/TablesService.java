@@ -2,8 +2,8 @@ package com.example.queriesmantenimientos.tables;
 
 import com.example.queriesmantenimientos.config.JwtService;
 import com.example.queriesmantenimientos.dto.BasicResponse;
-import com.example.queriesmantenimientos.dto.Role;
-import com.example.queriesmantenimientos.dto.User;
+import com.example.queriesmantenimientos.model.Role;
+import com.example.queriesmantenimientos.model.User;
 import com.example.queriesmantenimientos.model.Action;
 import com.example.queriesmantenimientos.model.Table;
 import com.example.queriesmantenimientos.repository.ActionRepository;
