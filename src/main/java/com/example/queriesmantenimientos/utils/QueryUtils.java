@@ -32,7 +32,7 @@ public class QueryUtils {
     public static void hasWhere(QueryRequest query) throws Exception {
         if (
                 (query.getAction_id() == Query.ACTION_UPDATE || query.getAction_id() == Query.ACTION_DELETE)
-                        && query.getWhere() == null
+                        && (query.getWhere() == null || query.getWhere().isEmpty())
         ) {
             throw new Exception("You have to provide a where condition to be updated or deleted");
         }
@@ -49,8 +49,8 @@ public class QueryUtils {
     }
 
     public static void validateAction(List<Action> actions, int actionId) throws Exception {
-       if(!Set.of(actions.stream().map(Action::getId)).contains(actionId)){
-          throw new Exception("Invalid action");
-       }
+        if (!Set.of(actions.stream().map(Action::getId)).contains(actionId)) {
+            throw new Exception("Invalid action");
+        }
     }
 }

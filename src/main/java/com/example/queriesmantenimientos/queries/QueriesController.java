@@ -4,7 +4,6 @@ import com.example.queriesmantenimientos.dto.BasicResponse;
 import com.example.queriesmantenimientos.model.Query;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
 import lombok.RequiredArgsConstructor;
-import org.apache.http.Header;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +16,79 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class QueriesController {
     private final QueriesService queriesService;
+
+    @PutMapping("authorize/delete/{query_id}")
+    public ResponseEntity<BasicResponse<Query>> authorizeDelete(
+            @PathVariable long query_id,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        try {
+            return ResponseEntity.ok(
+                    BasicResponse.<Query>builder()
+                            .data(queriesService.authorizeDelete(authorization, query_id))
+                            .build()
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    BasicResponse.<Query>builder().error(e.getMessage()).build(),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+    @PutMapping("authorize/update/{query_id}")
+    public ResponseEntity<BasicResponse<Query>> authorizeUpdate(
+            @PathVariable long query_id,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        try {
+            return ResponseEntity.ok(
+                    BasicResponse.<Query>builder()
+                            .data(queriesService.authorizeUpdate(authorization, query_id))
+                            .build()
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    BasicResponse.<Query>builder().error(e.getMessage()).build(),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+    @PutMapping("authorize/insert/{query_id}")
+    public ResponseEntity<BasicResponse<Query>> authorizeInsert(
+            @PathVariable long query_id,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        try {
+            return ResponseEntity.ok(
+                    BasicResponse.<Query>builder()
+                            .data(queriesService.authorizeInsert(authorization, query_id))
+                            .build()
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    BasicResponse.<Query>builder().error(e.getMessage()).build(),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+    @PutMapping("authorize/update/where/{query_id}")
+    public ResponseEntity<BasicResponse<Query>> authorizeUpdateWhere(
+            @PathVariable long query_id,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        try {
+            return ResponseEntity.ok(
+                    BasicResponse.<Query>builder()
+                            .data(queriesService.authorizeUpdate(authorization, query_id))
+                            .build()
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    BasicResponse.<Query>builder().error(e.getMessage()).build(),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+    }
 
     @PutMapping("authorize/{query_id}")
     public ResponseEntity<BasicResponse<Query>> authorize(
@@ -58,6 +130,94 @@ public class QueriesController {
                         .data_type("Query[]")
                         .build()
         );
+    }
+
+    @PostMapping("/create/insert")
+    public ResponseEntity<BasicResponse<Query>> createInsertQuery(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody QueryRequest query
+    ) {
+        try {
+            return ResponseEntity.ok(
+                    BasicResponse
+                            .<Query>builder()
+                            .data(queriesService.createInsert(query, authorization))
+                            .build()
+            );
+        } catch (Exception e) {
+            return ResponseEntity.ok(
+                    BasicResponse
+                            .<Query>builder()
+                            .error(e.getMessage())
+                            .build()
+            );
+        }
+    }
+
+    @PostMapping("/create/update/where")
+    public ResponseEntity<BasicResponse<Query>> createUpdateWhereQuery(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody QueryRequest query
+    ) {
+        try {
+            return ResponseEntity.ok(
+                    BasicResponse
+                            .<Query>builder()
+                            .data(queriesService.createUpdateWhere(query, authorization))
+                            .build()
+            );
+        } catch (Exception e) {
+            return ResponseEntity.ok(
+                    BasicResponse
+                            .<Query>builder()
+                            .error(e.getMessage())
+                            .build()
+            );
+        }
+    }
+
+    @PostMapping("/create/update")
+    public ResponseEntity<BasicResponse<Query>> createUpdateQuery(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody QueryRequest query
+    ) {
+        try {
+            return ResponseEntity.ok(
+                    BasicResponse
+                            .<Query>builder()
+                            .data(queriesService.createUpdate(query, authorization))
+                            .build()
+            );
+        } catch (Exception e) {
+            return ResponseEntity.ok(
+                    BasicResponse
+                            .<Query>builder()
+                            .error(e.getMessage())
+                            .build()
+            );
+        }
+    }
+
+    @PostMapping("/create/delete")
+    public ResponseEntity<BasicResponse<Query>> createDeleteQuery(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody QueryRequest query
+    ) {
+        try {
+            return ResponseEntity.ok(
+                    BasicResponse
+                            .<Query>builder()
+                            .data(queriesService.createDelete(query, authorization))
+                            .build()
+            );
+        } catch (Exception e) {
+            return ResponseEntity.ok(
+                    BasicResponse
+                            .<Query>builder()
+                            .error(e.getMessage())
+                            .build()
+            );
+        }
     }
 
     @PostMapping("/create")

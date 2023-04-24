@@ -2,10 +2,7 @@ package com.example.queriesmantenimientos.tables;
 
 import com.example.queriesmantenimientos.config.JwtService;
 import com.example.queriesmantenimientos.dto.BasicResponse;
-import com.example.queriesmantenimientos.model.Role;
-import com.example.queriesmantenimientos.model.User;
-import com.example.queriesmantenimientos.model.Action;
-import com.example.queriesmantenimientos.model.Table;
+import com.example.queriesmantenimientos.model.*;
 import com.example.queriesmantenimientos.repository.ActionRepository;
 import com.example.queriesmantenimientos.repository.TableRepository;
 import com.example.queriesmantenimientos.tables.dto.TableRequest;
@@ -45,7 +42,7 @@ public class TablesService {
         return BasicResponse.<Table>builder().data(tableRepo.save(
                 Table.builder()
                         .name(table.getName())
-                        .appId(table.getApp_id())
+                        .app(App.builder().id(table.getApp_id()).build())
                         .actions(
                                 table.getActions().stream()
                                         .map(a -> Action.builder().id(a).build()).collect(Collectors.toList())

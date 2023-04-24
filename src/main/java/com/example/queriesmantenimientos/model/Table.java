@@ -20,8 +20,11 @@ public class Table {
     private long id;
 
     private String name;
-    @Column(name = "app_id")
-    private int appId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "app_id")
+    private App app;
+
     @OneToMany
     @JoinColumn(name = "table_id")
     List<Field> fields = new ArrayList<>();
