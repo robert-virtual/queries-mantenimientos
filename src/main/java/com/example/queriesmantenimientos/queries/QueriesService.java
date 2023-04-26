@@ -1,12 +1,8 @@
 package com.example.queriesmantenimientos.queries;
 
 import com.example.queriesmantenimientos.config.JwtService;
-import com.example.queriesmantenimientos.model.App;
+import com.example.queriesmantenimientos.model.*;
 import com.example.queriesmantenimientos.dto.QueryWithParameters;
-import com.example.queriesmantenimientos.model.Action;
-import com.example.queriesmantenimientos.model.Query;
-import com.example.queriesmantenimientos.model.Table;
-import com.example.queriesmantenimientos.model.User;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
 import com.example.queriesmantenimientos.repository.QueryRepository;
 import com.example.queriesmantenimientos.repository.TableRepository;
@@ -52,8 +48,12 @@ public class QueriesService {
                     Query.builder()
                             .table(Table.builder().id(query.getTable_id()).build())
                             .action(Action.builder().id(query.getAction_id()).build())
-                            .parameters(objectMapper.writeValueAsString(query.getParameters()))
-                            .whereCondition(objectMapper.writeValueAsString(query.getWhere()))
+                            .parameters(objectMapper.writeValueAsString(
+                                    query.getParameters() == null
+                                            ? new HashMap<>()
+                                            : query.getParameters()
+                            ))
+                            .whereCondition(objectMapper.writeValueAsString(query.getWhere() == null ? "{}" : query.getWhere()))
                             .status(Query.STATUS_REQUESTED)
                             .requestedBy(user)
                             .requestedAt(LocalDateTime.now())
@@ -199,12 +199,12 @@ public class QueriesService {
     }
 
     public Query authorize(String authorization, long query_id) throws Exception {
-        Optional<Query> optionalQuery = queryRepo.findById(query_id);
-        Query query = QueryUtils.isQueryAuthorized(optionalQuery);
+        Query query = queryRepo.findById(query_id).orElseThrow();
+        QueryUtils.isQueryAuthorized(query);
         User user = jwtService.getUser(authorization);
         UserUtils.checkUserRole(user, RoleValues.QUERY_AUTHORIZER);
         ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> parameters = objectMapper.readValue(query.getParameters(), new TypeReference<>() {
+        Map<String, Object> parameters = objectMapper.readValue(Objects.equals(query.getParameters(), "null") ? "{}" : query.getParameters(), new TypeReference<>() {
         });
         Map<String, Object> where = objectMapper.readValue(query.getWhereCondition(), new TypeReference<>() {
         });
@@ -212,7 +212,9 @@ public class QueriesService {
         Object whereKeyValue = where != null ? where.get(whereKey == null ? "id" : whereKey) : null;
         Object id = whereKeyValue == null ? 0 : whereKeyValue;
         String fieldsString = String.join(",", parameters.keySet());//field1,field2
-        List<String> fields = parameters.keySet().stream().map(k -> String.format("%s=?", k)).collect(Collectors.toList());//field1=?,field2=?
+        List<String> fields =
+                parameters.keySet().stream().map(k -> String.format("%s=?", k)).collect(Collectors.toList())//field1=?,field2=?
+                ;
         if (whereKey != null) {
             parameters.put(whereKey.toString(), id);
         }
@@ -234,8 +236,8 @@ public class QueriesService {
             case Query.ACTION_UPDATE:
                 queryString = String.format(
                         "update %s set %s where %s = ?",
-                        query.getTable().getName(),
-                        String.join(",", fields),
+                        query.getTable().getName(), // table name
+                        String.join(",", fields), // (?,?,?)
                         whereKey
                 );
                 break;
@@ -248,6 +250,7 @@ public class QueriesService {
                 break;
         }
         log.info(queryString);
+        // call target service to execute query
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", authorization);
@@ -270,10 +273,132 @@ public class QueriesService {
         return queryRepo.save(query);
     }
 
+    public Query authorizeImproved(String authorization, long query_id) throws Exception {
+        // check user has role to authorize queries
+        User user = jwtService.getUser(authorization);
+        UserUtils.checkUserRole(user, RoleValues.QUERY_AUTHORIZER);
+        // verify that the query status is not authorized
+        Query query = queryRepo.findById(query_id).orElseThrow(() -> new Exception("Invalid query"));
+        QueryUtils.isQueryAuthorized(query);
+        // create the query string
+        Map<String, String> queryTemplates = new HashMap<>();
+        queryTemplates.put("insert", "insert into %s(%s) values(%s)"); // table, fields, placeholders
+        queryTemplates.put("update", "update %s set %s where %s"); // table, field=placeholders, where-conditions
+        queryTemplates.put("delete", "delete from %s where %s"); // table, where-conditions
+        String queryStructure = queryTemplates.get(query.getAction().getName());
+        log.info(queryStructure);
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> queryParameters = objectMapper.readValue(query.getParameters(), new TypeReference<>() {
+        });
+        List<String> fieldList = new ArrayList<>(queryParameters.keySet());
+        String joinedFields = String.join(",", fieldList);
+        List<String> fieldPlaceholders = fieldList.stream().map((field) -> "?").collect(Collectors.toList()); // List.Of("?","?",...)
+        Map<String, List<Object>> parameters = new HashMap<>();
+        List<Object> values = new ArrayList<>(queryParameters.values());
+        parameters.put(
+                "insert",
+                List.of(
+                        query.getTable().getName(),
+                        joinedFields,
+                        String.join(",", fieldPlaceholders)
+                )
+        ); // table, fields, placeholders
+        if (query.getAction().getId() == Query.ACTION_INSERT) {
+            String queryCompleted = String.format(queryStructure, parameters.get(query.getAction().getName()).toArray());
+            log.info(queryCompleted);
+            log.info(objectMapper.writeValueAsString(values));
+            // send query string to the service that will execute it
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", authorization);
+            HttpEntity<QueryWithParameters> request = new HttpEntity<>(
+                    QueryWithParameters.builder()
+                            .query(queryCompleted)
+                            .values(values.toArray())
+                            .build(),
+                    headers
+            );
+            App app = query.getTable().getApp();
+            String queryResponse = restTemplate.postForObject(
+                    app.getExecuteQueryEndpoint(),
+                    request,
+                    String.class
+            );
+            // update query
+            query.setStatus(QueryStatus.AUTHORIZED.toString());
+            query.setAuthorizedAt(LocalDateTime.now());
+            query.setResponse(queryResponse);
+            query.setAuthorizedBy(user);
+            return queryRepo.save(query);
+
+        }
+        List<String> fieldPlaceholderList = fieldList.stream().map(field -> String.format("%s=?", field)).collect(Collectors.toList());// field1=?,field2=?
+
+        // when query acton is insert queryWhere is empty
+        Map<String, Object> queryWhere = objectMapper.readValue(query.getWhereCondition(), new TypeReference<>() {
+        }); // {} // {id:3} // {and:[{email:"..."},{lastname:"..."}]} // {or:[{email:"..."},{lastname:"..."}]}
+        String operatorOrKey = queryWhere.keySet().toArray()[0].toString();
+        List<Map<String, Object>> whereParameters = queryWhere.get(operatorOrKey).getClass() == ArrayList.class
+                ? (List<Map<String, Object>>) queryWhere.get(operatorOrKey)
+                : new ArrayList<>();
+        List<String> whereParametersPlaceholders = whereParameters.stream().map(
+                map -> String.format("%s=?", map.keySet().toArray()[0].toString())
+        ).collect(Collectors.toList());
+        boolean hasOperator = List.of("and", "or").contains(operatorOrKey);
+        String whereConditions = hasOperator
+                ? String.join(String.format(" %s ", operatorOrKey), whereParametersPlaceholders)
+                : String.format("%s=?", operatorOrKey); // key1 = ? // key1 = ? or key2 = ? or ... // key1 = ? and key2 = ? and ...
+        values.addAll(hasOperator ? whereParameters.stream().map(
+                map -> map.get(map.keySet().toArray()[0].toString())
+        ).collect(Collectors.toList()) : List.of(queryWhere.get(operatorOrKey)));
+        parameters.put(
+                "update",
+                List.of(
+                        query.getTable().getName(),
+                        String.join(",", fieldPlaceholderList),
+                        whereConditions
+                )
+        ); // table, field=placeholders, where-conditions
+        parameters.put(
+                "delete",
+                List.of(
+                        query.getTable().getName(),
+                        whereConditions
+                )
+        ); // table, where-conditions
+        String queryCompleted = String.format(queryStructure, parameters.get(query.getAction().getName()).toArray());
+        log.info(queryCompleted);
+        log.info(objectMapper.writeValueAsString(values));
+        // send query string to the service that will execute it
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", authorization);
+        HttpEntity<QueryWithParameters> request = new HttpEntity<>(
+                QueryWithParameters.builder()
+                        .query(queryCompleted)
+                        .values(values.toArray())
+                        .build(),
+                headers
+        );
+        App app = query.getTable().getApp();
+        String queryResponse = restTemplate.postForObject(
+                app.getExecuteQueryEndpoint(),
+                request,
+                String.class
+        );
+        // update query
+        query.setStatus(QueryStatus.AUTHORIZED.toString());
+        query.setAuthorizedAt(LocalDateTime.now());
+        query.setResponse(queryResponse);
+        query.setAuthorizedBy(user);
+        return queryRepo.save(query);
+    }
+
     public Query authorizeInsert(String authorization, long query_id) throws Exception {
-        Optional<Query> optionalQuery = queryRepo.findById(query_id);
-        Query query = QueryUtils.isQueryAuthorized(optionalQuery);
-        if (query.getAction().getId() != Query.ACTION_DELETE) throw new Exception("bad request this endpoint is intended for insert queries");
+        Query query = queryRepo.findById(query_id).orElseThrow();
+        QueryUtils.isQueryAuthorized(query);
+        if (query.getAction().getId() != Query.ACTION_DELETE)
+            throw new Exception("bad request this endpoint is intended for insert queries");
         User user = jwtService.getUser(authorization);
         UserUtils.checkUserRole(user, RoleValues.QUERY_AUTHORIZER);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -315,9 +440,10 @@ public class QueriesService {
     }
 
     public Query authorizeDelete(String authorization, long query_id) throws Exception {
-        Optional<Query> optionalQuery = queryRepo.findById(query_id);
-        Query query = QueryUtils.isQueryAuthorized(optionalQuery);
-        if (query.getAction().getId() != Query.ACTION_DELETE) throw new Exception("bad request this endpoint is intended for delete queries");
+        Query query = queryRepo.findById(query_id).orElseThrow();
+        QueryUtils.isQueryAuthorized(query);
+        if (query.getAction().getId() != Query.ACTION_DELETE)
+            throw new Exception("bad request this endpoint is intended for delete queries");
         User user = jwtService.getUser(authorization);
         UserUtils.checkUserRole(user, RoleValues.QUERY_AUTHORIZER);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -385,13 +511,14 @@ public class QueriesService {
     }
 
     public Query authorizeUpdate(String authorization, long query_id) throws Exception {
-        Optional<Query> optionalQuery = queryRepo.findById(query_id);
-        Query query = QueryUtils.isQueryAuthorized(optionalQuery);
-        if (query.getAction().getId() != Query.ACTION_UPDATE) throw new Exception("bad request this endpoint is intended for update queries");
+        Query query = queryRepo.findById(query_id).orElseThrow();
+        QueryUtils.isQueryAuthorized(query);
+        if (query.getAction().getId() != Query.ACTION_UPDATE)
+            throw new Exception("bad request this endpoint is intended for update queries");
         User user = jwtService.getUser(authorization);
         UserUtils.checkUserRole(user, RoleValues.QUERY_AUTHORIZER);
         ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> parameters = objectMapper.readValue(query.getParameters(), new TypeReference<>() {
+        Map<String, Object> parameters = objectMapper.readValue(Objects.equals(query.getParameters(), "null") ? "{}" : query.getParameters(), new TypeReference<>() {
         });
         List<Object> parametersValues = new ArrayList<>(Arrays.asList(parameters.values().toArray()));
         Map<String, Object> where = objectMapper.readValue(query.getWhereCondition(), new TypeReference<>() {
@@ -402,9 +529,9 @@ public class QueriesService {
         Object whereKeyValue = where != null ? where.get(firstWhereKey == null ? "id" : firstWhereKey) : null;
         Object id = whereKeyValue == null ? 0 : whereKeyValue;
         if (firstWhereKey == "or" || firstWhereKey == "and") {
-            // key1 = value1 && key2 == value2
-            // key1 = value1 || key2 == value2
-            // where key1 = ? || key2 == ?
+            // key1 = value1 && key2 = value2
+            // key1 = value1 || key2 = value2
+            // where key1 = ? || key2 = ?
 
             // where = {or:[{name:"name1"},{name:"name2"}]}
             List<Map<String, Object>> whereKeys = (List<Map<String, Object>>) where.get(firstWhereKey);
@@ -418,7 +545,6 @@ public class QueriesService {
         } else {
             // where = {id:1}
             filterFields.add(String.format("%s=?", firstWhereKey));
-//            parameters.put(firstWhereKey.toString(), id);
             parametersValues.add(id);
         }
         List<String> fields = parameters.keySet().stream().map(
@@ -445,11 +571,15 @@ public class QueriesService {
                         .build(),
                 headers
         );
-        queryResponse = restTemplate.postForObject(
-                app.getExecuteQueryEndpoint(),
-                request,
-                String.class
-        );
+        try {
+            queryResponse = restTemplate.postForObject(
+                    app.getExecuteQueryEndpoint(),
+                    request,
+                    String.class
+            );
+        } catch (Exception e) {
+            throw e;
+        }
         query.setStatus(QueryStatus.AUTHORIZED.toString());
         query.setAuthorizedAt(LocalDateTime.now());
         query.setResponse(queryResponse);

@@ -4,10 +4,12 @@ import com.example.queriesmantenimientos.dto.BasicResponse;
 import com.example.queriesmantenimientos.model.Query;
 import com.example.queriesmantenimientos.queries.dto.QueryRequest;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.SocketException;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +37,7 @@ public class QueriesController {
             );
         }
     }
+
     @PutMapping("authorize/update/{query_id}")
     public ResponseEntity<BasicResponse<Query>> authorizeUpdate(
             @PathVariable long query_id,
@@ -53,6 +56,7 @@ public class QueriesController {
             );
         }
     }
+
     @PutMapping("authorize/insert/{query_id}")
     public ResponseEntity<BasicResponse<Query>> authorizeInsert(
             @PathVariable long query_id,
@@ -71,6 +75,7 @@ public class QueriesController {
             );
         }
     }
+
     @PutMapping("authorize/update/where/{query_id}")
     public ResponseEntity<BasicResponse<Query>> authorizeUpdateWhere(
             @PathVariable long query_id,
@@ -81,6 +86,31 @@ public class QueriesController {
                     BasicResponse.<Query>builder()
                             .data(queriesService.authorizeUpdate(authorization, query_id))
                             .build()
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    BasicResponse.<Query>builder().error(e.getMessage()).build(),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
+    @PutMapping("authorize/{query_id}/improved")
+    public ResponseEntity<BasicResponse<Query>> authorizeImproved(
+            @PathVariable long query_id,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        try {
+            return ResponseEntity.ok(
+                    BasicResponse.<Query>builder()
+                            .data(queriesService.authorizeImproved(authorization, query_id))
+                            .build()
+            );
+        } catch (JDBCConnectionException e) {
+
+            return new ResponseEntity<>(
+                    BasicResponse.<Query>builder().error(e.getMessage()).build(),
+                    HttpStatus.INTERNAL_SERVER_ERROR
             );
         } catch (Exception e) {
             return new ResponseEntity<>(

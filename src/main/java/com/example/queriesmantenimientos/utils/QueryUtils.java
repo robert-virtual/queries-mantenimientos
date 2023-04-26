@@ -13,11 +13,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class QueryUtils {
-    public static Query isQueryAuthorized(Optional<Query> query) throws Exception {
-        if (query.isEmpty()) throw new Exception("Invalid Query");
-        if (Objects.equals(query.get().getStatus(), QueryStatus.AUTHORIZED.toString()))
+    public static void isQueryAuthorized(Query query) throws Exception {
+        if (Objects.equals(query.getStatus(), QueryStatus.AUTHORIZED.toString()))
             throw new Exception("Invalid Query");
-        return query.get();
     }
 
     public static void tableExists(QueryRequest query) throws Exception {
