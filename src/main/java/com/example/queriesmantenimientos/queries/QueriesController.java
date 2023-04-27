@@ -60,7 +60,7 @@ public class QueriesController {
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/one/{id}")
     public ResponseEntity<Optional<Query>> getById(@PathVariable long id) {
         return ResponseEntity.ok(queriesService.byId(id));
     }
