@@ -18,6 +18,7 @@ public class AuditLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String action;
+    @Column(columnDefinition = "nvarchar(MAX)")
     private String data_json;
     private int userId;
     private LocalDateTime date;

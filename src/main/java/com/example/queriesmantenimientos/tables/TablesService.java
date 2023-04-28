@@ -1,18 +1,18 @@
 package com.example.queriesmantenimientos.tables;
 
+import com.example.queriesmantenimientos.AuditLogService;
 import com.example.queriesmantenimientos.config.JwtService;
 import com.example.queriesmantenimientos.dto.BasicResponse;
 import com.example.queriesmantenimientos.model.*;
 import com.example.queriesmantenimientos.repository.ActionRepository;
 import com.example.queriesmantenimientos.repository.TableRepository;
+import com.example.queriesmantenimientos.tables.dto.TableAndActions;
 import com.example.queriesmantenimientos.tables.dto.TableRequest;
 import com.example.queriesmantenimientos.utils.RoleValues;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,6 +21,7 @@ public class TablesService {
     private final TableRepository tableRepo;
     private final ActionRepository actionRepo;
     private final JwtService jwtService;
+    private final AuditLogService auditLogService;
 
     public BasicResponse<Table> create(String authorization, TableRequest table) {
         User user;
@@ -39,6 +40,7 @@ public class TablesService {
         List<Action> actions = actionRepo.findByIdIn(table.getActions());
         if (actions.size() != table.getActions().size())
             return BasicResponse.<Table>builder().error("Invalid action").build();
+        auditLogService.audit("create table", table, user);
         return BasicResponse.<Table>builder().data(tableRepo.save(
                 Table.builder()
                         .name(table.getName())
@@ -53,5 +55,14 @@ public class TablesService {
 
     public List<Table> byApp(int appId) {
         return tableRepo.findByAppId(appId);
+    }
+
+    public Table addActions(TableAndActions tableAndActions) {
+        Table table = tableRepo.findById(tableAndActions.getTable_id()).orElseThrow();
+        Set<Integer> actions = table.getActions().stream().map(Action::getId).collect(Collectors.toSet());
+        actions.addAll(tableAndActions.getActions());
+        table.setActions(actions.stream().map(a -> Action.builder().id(a).build()).collect(Collectors.toList()));
+        tableRepo.save(table);
+        return table;
     }
 }

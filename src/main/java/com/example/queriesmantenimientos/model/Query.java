@@ -26,7 +26,9 @@ public class Query {
     @ManyToOne
     @JoinColumn(name = "action_id")
     private Action action;
+    @Column(columnDefinition = "nvarchar(MAX)")
     private String parameters;
+    @Column(columnDefinition = "nvarchar(MAX)")
     private String whereCondition;
     private String response;
     private String status;

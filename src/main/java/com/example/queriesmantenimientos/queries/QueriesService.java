@@ -1,5 +1,6 @@
 package com.example.queriesmantenimientos.queries;
 
+import com.example.queriesmantenimientos.AuditLogService;
 import com.example.queriesmantenimientos.config.JwtService;
 import com.example.queriesmantenimientos.model.*;
 import com.example.queriesmantenimientos.dto.QueryWithParameters;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,7 +33,9 @@ public class QueriesService {
     private final QueryRepository queryRepo;
     private final JwtService jwtService;
     private final TableRepository tableRepo;
+    private final AuditLogService auditLogService;
 
+    @Transactional
     public Query create(QueryRequest query, String authorization) throws Exception {
         QueryUtils.hasWhere(query);
         Table table = tableRepo.findById(query.getTable_id()).orElseThrow(() -> new Exception("Invalid query"));
@@ -44,7 +48,7 @@ public class QueriesService {
         UserUtils.hasRolePermission(user, Set.of(RoleValues.QUERY_CREATOR.toString(), RoleValues.QUERY_AUTHORIZER.toString()));
         hasTablePermissions(query, user);
         try {
-            return queryRepo.save(
+            Query savedQuery = queryRepo.save(
                     Query.builder()
                             .table(Table.builder().id(query.getTable_id()).build())
                             .action(Action.builder().id(query.getAction_id()).build())
@@ -59,8 +63,11 @@ public class QueriesService {
                             .requestedAt(LocalDateTime.now())
                             .build()
             );
+            auditLogService.audit("create query", savedQuery, user);
+            return savedQuery;
         } catch (Exception e) {
             log.error(e.getMessage());
+            auditLogService.audit("create query failed", e.getMessage(), user);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -92,81 +99,8 @@ public class QueriesService {
         return queryRepo.findById(id);
     }
 
-    public Query authorize(String authorization, long query_id) throws Exception {
-        Query query = queryRepo.findById(query_id).orElseThrow();
-        QueryUtils.isQueryAuthorized(query);
-        User user = jwtService.getUser(authorization);
-        UserUtils.checkUserRole(user, RoleValues.QUERY_AUTHORIZER);
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> parameters = objectMapper.readValue(Objects.equals(query.getParameters(), "null") ? "{}" : query.getParameters(), new TypeReference<>() {
-        });
-        Map<String, Object> where = objectMapper.readValue(query.getWhereCondition(), new TypeReference<>() {
-        });
-        Object whereKey = where != null ? where.keySet().toArray()[0] : null;
-        Object whereKeyValue = where != null ? where.get(whereKey == null ? "id" : whereKey) : null;
-        Object id = whereKeyValue == null ? 0 : whereKeyValue;
-        String fieldsString = String.join(",", parameters.keySet());//field1,field2
-        List<String> fields =
-                parameters.keySet().stream().map(k -> String.format("%s=?", k)).collect(Collectors.toList())//field1=?,field2=?
-                ;
-        if (whereKey != null) {
-            parameters.put(whereKey.toString(), id);
-        }
-        String valuesPlaceholders = String.join(",", Collections.nCopies(parameters.size(), "?")); // ?,?
-        String queryResponse = "";
-        String queryString = "";
-        App app = query.getTable().getApp();
-        if (app == null) throw new Exception("Invalid query");
-        switch (query.getAction().getId()) {
-            case Query.ACTION_INSERT:
-                queryString = String.format(
-                        "insert into %s(%s) values(%s)",
-                        query.getTable().getName(),
-                        fieldsString,
-                        valuesPlaceholders
-                );
 
-                break;
-            case Query.ACTION_UPDATE:
-                queryString = String.format(
-                        "update %s set %s where %s = ?",
-                        query.getTable().getName(), // table name
-                        String.join(",", fields), // (?,?,?)
-                        whereKey
-                );
-                break;
-            case Query.ACTION_DELETE:
-                queryString = String.format(
-                        "delete from %s where %s = ?",
-                        query.getTable().getName(),
-                        whereKey
-                );
-                break;
-        }
-        log.info(queryString);
-        // call target service to execute query
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authorization);
-        HttpEntity<QueryWithParameters> request = new HttpEntity<>(
-                QueryWithParameters.builder()
-                        .query(queryString)
-                        .values(parameters.values().toArray())
-                        .build(),
-                headers
-        );
-        queryResponse = restTemplate.postForObject(
-                app.getExecuteQueryEndpoint(),
-                request,
-                String.class
-        );
-        query.setStatus(QueryStatus.AUTHORIZED.toString());
-        query.setAuthorizedAt(LocalDateTime.now());
-        query.setResponse(queryResponse);
-        query.setAuthorizedBy(user);
-        return queryRepo.save(query);
-    }
-
+    @Transactional
     public Query authorizeImproved(String authorization, long query_id) throws Exception {
         // check user has role to authorize queries
         User user = jwtService.getUser(authorization);
@@ -285,7 +219,9 @@ public class QueriesService {
         query.setAuthorizedAt(LocalDateTime.now());
         query.setResponse(queryResponse);
         query.setAuthorizedBy(user);
-        return queryRepo.save(query);
+        queryRepo.save(query);
+        auditLogService.audit("authorize query", Query.builder().id(query_id).build(), user);
+        return query;
     }
 
 }

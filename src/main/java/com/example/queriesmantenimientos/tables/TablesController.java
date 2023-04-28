@@ -2,6 +2,7 @@ package com.example.queriesmantenimientos.tables;
 
 import com.example.queriesmantenimientos.dto.BasicResponse;
 import com.example.queriesmantenimientos.model.Table;
+import com.example.queriesmantenimientos.tables.dto.TableAndActions;
 import com.example.queriesmantenimientos.tables.dto.TableRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,5 +36,9 @@ public class TablesController {
         return ResponseEntity.ok(
                 tablesService.create(authorization,table)
         );
+    }
+    @PutMapping("actions")
+    public ResponseEntity<Table>  addActions(@RequestBody TableAndActions tableAndActions){
+        return ResponseEntity.ok(tablesService.addActions(tableAndActions));
     }
 }

@@ -45,20 +45,6 @@ public class QueriesController {
         }
     }
 
-    @PutMapping("authorize/{query_id}/old")
-    public ResponseEntity<BasicResponse<Query>> authorize(
-            @PathVariable long query_id,
-            @RequestHeader("Authorization") String authorization
-    ) {
-        try {
-            return ResponseEntity.ok(BasicResponse.<Query>builder().data(queriesService.authorize(authorization, query_id)).build());
-        } catch (Exception e) {
-            return new ResponseEntity<>(
-                    BasicResponse.<Query>builder().error(e.getMessage()).build(),
-                    HttpStatus.BAD_REQUEST
-            );
-        }
-    }
 
     @GetMapping("/one/{id}")
     public ResponseEntity<Optional<Query>> getById(@PathVariable long id) {
