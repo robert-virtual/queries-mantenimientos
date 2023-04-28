@@ -220,7 +220,15 @@ public class QueriesService {
         query.setResponse(queryResponse);
         query.setAuthorizedBy(user);
         queryRepo.save(query);
-        auditLogService.audit("authorize query", Query.builder().id(query_id).build(), user);
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", query.getId());
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("id", user.getId());
+        userMap.put("name", user.getName());
+        map.put("authorizedBy", userMap);
+        map.put("authorizedAt", query.getAuthorizedAt());
+        map.put("requestedAt", query.getRequestedAt());
+        auditLogService.audit("authorize query", map, user);
         return query;
     }
 
