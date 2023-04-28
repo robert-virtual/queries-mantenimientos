@@ -57,12 +57,22 @@ public class TablesService {
         return tableRepo.findByAppId(appId);
     }
 
-    public Table addActions(TableAndActions tableAndActions) {
+    public Table removeActions(TableAndActions tableAndActions,String authorization) {
+        Table table = tableRepo.findById(tableAndActions.getTable_id()).orElseThrow();
+        Set<Integer> actions = table.getActions().stream().map(Action::getId).collect(Collectors.toSet());
+        tableAndActions.getActions().forEach(actions::remove);
+        table.setActions(actions.stream().map(a -> Action.builder().id(a).build()).collect(Collectors.toList()));
+        tableRepo.save(table);
+        auditLogService.audit("remove action from table",table,authorization);
+        return table;
+    }
+    public Table addActions(TableAndActions tableAndActions,String authorization) {
         Table table = tableRepo.findById(tableAndActions.getTable_id()).orElseThrow();
         Set<Integer> actions = table.getActions().stream().map(Action::getId).collect(Collectors.toSet());
         actions.addAll(tableAndActions.getActions());
         table.setActions(actions.stream().map(a -> Action.builder().id(a).build()).collect(Collectors.toList()));
         tableRepo.save(table);
+        auditLogService.audit("add action to table",table,authorization);
         return table;
     }
 }

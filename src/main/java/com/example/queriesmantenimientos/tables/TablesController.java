@@ -34,11 +34,23 @@ public class TablesController {
             @RequestHeader("Authorization") String authorization
     ) {
         return ResponseEntity.ok(
-                tablesService.create(authorization,table)
+                tablesService.create(authorization, table)
         );
     }
+
+    @PutMapping("actions/remove")
+    public ResponseEntity<Table> removeActions(
+            @RequestBody TableAndActions tableAndActions,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        return ResponseEntity.ok(tablesService.removeActions(tableAndActions, authorization));
+    }
+
     @PutMapping("actions")
-    public ResponseEntity<Table>  addActions(@RequestBody TableAndActions tableAndActions){
-        return ResponseEntity.ok(tablesService.addActions(tableAndActions));
+    public ResponseEntity<Table> addActions(
+            @RequestBody TableAndActions tableAndActions,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        return ResponseEntity.ok(tablesService.addActions(tableAndActions, authorization));
     }
 }
