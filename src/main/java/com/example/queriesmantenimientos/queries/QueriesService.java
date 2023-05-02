@@ -131,8 +131,9 @@ public class QueriesService {
                         String.join(",", fieldPlaceholders)
                 )
         ); // table, fields, placeholders
+        String queryCompleted = "";
         if (query.getAction().getId() == Query.ACTION_INSERT) {
-            String queryCompleted = String.format(queryStructure, parameters.get(query.getAction().getName()).toArray());
+            queryCompleted = getCompletedString(query, queryStructure, parameters);
             log.info(queryCompleted);
             log.info(objectMapper.writeValueAsString(values));
             // send query string to the service that will execute it
@@ -148,7 +149,7 @@ public class QueriesService {
             );
             App app = query.getTable().getApp();
             String queryResponse = restTemplate.postForObject(
-                    app.getExecuteQueryEndpoint(),
+                    app.getEndpoint(),
                     request,
                     String.class
             );
@@ -194,7 +195,7 @@ public class QueriesService {
                         whereConditions
                 )
         ); // table, where-conditions
-        String queryCompleted = String.format(queryStructure, parameters.get(query.getAction().getName()).toArray());
+        queryCompleted = getCompletedString(query, queryStructure, parameters);
         log.info(queryCompleted);
         log.info(objectMapper.writeValueAsString(values));
         // send query string to the service that will execute it
@@ -210,7 +211,7 @@ public class QueriesService {
         );
         App app = query.getTable().getApp();
         String queryResponse = restTemplate.postForObject(
-                app.getExecuteQueryEndpoint(),
+                app.getEndpoint(),
                 request,
                 String.class
         );
@@ -230,6 +231,11 @@ public class QueriesService {
         map.put("requestedAt", query.getRequestedAt());
         auditLogService.audit("authorize query", map, user);
         return query;
+    }
+
+    private static String getCompletedString(Query query, String queryStructure, Map<String, List<Object>> parameters) {
+        String queryCompleted = String.format(queryStructure, parameters.get(query.getAction().getName()).toArray());
+        return queryCompleted;
     }
 
 }
